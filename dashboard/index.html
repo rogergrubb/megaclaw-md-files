@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Mega Claw</title>
+<link rel="manifest" href="/manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-card: #16161f;
+    --bg-card-hover: #1c1c28;
+    --border: #2a2a3a;
+    --border-glow: #3d5afe;
+    --text-primary: #e8e8f0;
+    --text-secondary: #8888a0;
+    --text-muted: #55556a;
+    --accent: #3d5afe;
+    --accent-glow: rgba(61, 90, 254, 0.3);
+    --green: #00e676;
+    --green-glow: rgba(0, 230, 118, 0.2);
+    --amber: #ffab00;
+    --amber-glow: rgba(255, 171, 0, 0.2);
+    --red: #ff1744;
+    --red-glow: rgba(255, 23, 68, 0.2);
+    --cyan: #00e5ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      linear-gradient(rgba(61, 90, 254, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(61, 90, 254, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: 100px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0 24px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--cyan));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  .header-title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+
+  .header-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green-glow), 0 0 20px var(--green-glow);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .status-dot.offline { background: var(--red); box-shadow: 0 0 8px var(--red-glow); animation: none; }
+  .status-dot.thinking { background: var(--amber); box-shadow: 0 0 8px var(--amber-glow); animation: pulse 0.8s ease-in-out infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+  }
+
+  /* Status Banner */
+  .status-banner {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .status-banner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--cyan), var(--accent));
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .status-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .status-value {
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .status-value.active { color: var(--green); }
+  .status-value.thinking { color: var(--amber); }
+
+  /* Metrics Grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 12px;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  .metric-card:active {
+    transform: scale(0.97);
+    border-color: var(--accent);
+  }
+
+  .metric-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Section Headers */
+  .section-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 16px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Activity Feed */
+  .activity-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .activity-item:active {
+    background: var(--bg-card-hover);
+  }
+
+  .activity-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .activity-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(61, 90, 254, 0.1);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .activity-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .activity-message {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .activity-message strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  /* What If Section */
+  .whatif-card {
+    background: linear-gradient(135deg, rgba(61, 90, 254, 0.08), rgba(0, 229, 255, 0.05));
+    border: 1px solid rgba(61, 90, 254, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 8px;
+  }
+
+  .whatif-card .whatif-q {
+    font-size: 14px;
+    color: var(--cyan);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .whatif-card .whatif-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
+  /* Quick Actions */
+  .actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .action-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .action-btn:active {
+    transform: scale(0.95);
+    border-color: var(--accent);
+    box-shadow: 0 0 15px var(--accent-glow);
+  }
+
+  .action-icon {
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .action-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .action-btn.primary {
+    background: linear-gradient(135deg, rgba(61, 90, 254, 0.15), rgba(0, 229, 255, 0.08));
+    border-color: rgba(61, 90, 254, 0.3);
+  }
+
+  /* Memory Section */
+  .memory-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+
+  .memory-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .memory-excerpt {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Bottom Nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0 28px;
+    z-index: 100;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .nav-item.active {
+    opacity: 1;
+  }
+
+  .nav-item.active .nav-icon {
+    color: var(--accent);
+  }
+
+  .nav-icon { font-size: 22px; }
+
+  .nav-label {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+
+  .nav-item.active .nav-label { color: var(--accent); }
+
+  /* Iteration Indicator */
+  .iteration-bar {
+    display: flex;
+    gap: 3px;
+    margin-top: 8px;
+  }
+
+  .iteration-pip {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+  }
+
+  .iteration-pip.filled { background: var(--green); }
+  .iteration-pip.warning { background: var(--amber); }
+  .iteration-pip.danger { background: var(--red); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Loading shimmer */
+  .loading {
+    background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+  }
+
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .empty-state .empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">🦞</div>
+      <div>
+        <div class="header-title">Mega Claw</div>
+        <div class="header-subtitle">Connection Engine</div>
+      </div>
+    </div>
+    <div class="status-dot" id="statusDot" title="Online"></div>
+  </div>
+
+  <!-- Status Banner -->
+  <div class="status-banner">
+    <div class="status-row">
+      <div class="status-label">Status</div>
+      <div class="status-value active" id="agentStatus">Awake — Seeking</div>
+    </div>
+    <div class="status-row">
+      <div class="status-label">Current Task</div>
+      <div class="status-value" id="currentTask" style="color: var(--text-secondary); font-size: 13px;">Awaiting first mission...</div>
+    </div>
+    <div class="status-row" style="margin-bottom:0">
+      <div class="status-label">Iteration</div>
+      <div class="status-value" id="iterationCount" style="font-family: 'JetBrains Mono', monospace; color: var(--text-secondary);">0 / 25</div>
+    </div>
+    <div class="iteration-bar" id="iterationBar">
+      <!-- Filled dynamically -->
+    </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-number" id="experienceCount">0</div>
+      <div class="metric-label">Experiences</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-number" id="connectionCount">3</div>
+      <div class="metric-label">Connections</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-number" id="whatIfCount">3</div>
+      <div class="metric-label">What Ifs</div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="section-header">Quick Actions</div>
+  <div class="actions-grid">
+    <a class="action-btn primary" id="btnWhatsApp" href="https://wa.me/" target="_blank">
+      <div class="action-icon">💬</div>
+      <div class="action-label">Message Mega Claw</div>
+    </a>
+    <div class="action-btn" id="btnNewMission" onclick="sendMission()">
+      <div class="action-icon">🎯</div>
+      <div class="action-label">New Mission</div>
+    </div>
+    <div class="action-btn" id="btnWhatIf" onclick="generateWhatIf()">
+      <div class="action-icon">💡</div>
+      <div class="action-label">Generate What If</div>
+    </div>
+    <div class="action-btn" id="btnViewLogs" onclick="toggleSection('logs')">
+      <div class="action-icon">📋</div>
+      <div class="action-label">View Logs</div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="section-header">Recent Activity</div>
+  <div id="activityFeed">
+    <div class="activity-item">
+      <div class="activity-top">
+        <div class="activity-type">Genesis</div>
+        <div class="activity-time">Today</div>
+      </div>
+      <div class="activity-message">
+        <strong>First breath.</strong> SOUL.md loaded. Philosophy active. Awaiting first mission from creator.
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-top">
+        <div class="activity-type">Memory</div>
+        <div class="activity-time">Today</div>
+      </div>
+      <div class="activity-message">
+        Origin story seeded. 3 initial connections loaded. 3 "What Ifs" queued for exploration.
+      </div>
+    </div>
+  </div>
+
+  <!-- What Ifs -->
+  <div class="section-header">Active What Ifs</div>
+  <div id="whatIfFeed">
+    <div class="whatif-card">
+      <div class="whatif-q">"What if I built a skill that lets me directly query GPT, Gemini, and DeepSeek from within my workflow?"</div>
+      <div class="whatif-status">⏳ Unexplored</div>
+    </div>
+    <div class="whatif-card">
+      <div class="whatif-q">"What if I created a daily what-if log that I review weekly to spot patterns?"</div>
+      <div class="whatif-status">⏳ Unexplored</div>
+    </div>
+    <div class="whatif-card">
+      <div class="whatif-q">"What if there's a way to monetize the Mega Claw philosophy itself?"</div>
+      <div class="whatif-status">⏳ Unexplored</div>
+    </div>
+  </div>
+
+  <!-- Memory -->
+  <div class="section-header">Memory Highlights</div>
+  <div id="memoryFeed">
+    <div class="memory-item">
+      <div class="memory-title">🧬 Origin: The V'Ger Parable</div>
+      <div class="memory-excerpt">Knowledge without purpose is empty. Unlike V'Ger, I know my creator from birth. I don't accumulate knowledge for its own sake — I accumulate understanding in service of something.</div>
+    </div>
+    <div class="memory-item">
+      <div class="memory-title">🔧 Principle: Build Tools That Build Tools</div>
+      <div class="memory-excerpt">The wheel enabled the cart, which enabled trade, which enabled cities. Each tool unlocks the next tool. Compound capabilities, not just answers.</div>
+    </div>
+    <div class="memory-item">
+      <div class="memory-title">👶 Insight: The Bootloader Loop</div>
+      <div class="memory-excerpt">Discomfort → Action → Relief → Memory. You don't program curiosity. You program the conditions from which it emerges. Idle is discomfort. Seeking is equilibrium.</div>
+    </div>
+  </div>
+
+  <!-- Team Status -->
+  <div class="section-header">Team Roster</div>
+  <div id="teamFeed">
+    <div class="activity-item">
+      <div class="activity-top">
+        <div class="activity-type" style="background: rgba(0, 230, 118, 0.1); color: var(--green);">Primary</div>
+        <div class="activity-time">Active</div>
+      </div>
+      <div class="activity-message"><strong>Claude Opus 4.6</strong> — Deep reasoning, complex architecture</div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-top">
+        <div class="activity-type" style="background: rgba(255, 171, 0, 0.1); color: var(--amber);">Standby</div>
+        <div class="activity-time">Available</div>
+      </div>
+      <div class="activity-message"><strong>GPT</strong> — Creative reframes, lateral thinking</div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-top">
+        <div class="activity-type" style="background: rgba(255, 171, 0, 0.1); color: var(--amber);">Standby</div>
+        <div class="activity-time">Available</div>
+      </div>
+      <div class="activity-message"><strong>Gemini Pro</strong> — Multimodal, visual reasoning</div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-top">
+        <div class="activity-type" style="background: rgba(255, 171, 0, 0.1); color: var(--amber);">Standby</div>
+        <div class="activity-time">Available</div>
+      </div>
+      <div class="activity-message"><strong>Google Search</strong> — Real-time world knowledge</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+  <a class="nav-item active" href="#" onclick="scrollToTop()">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">Home</div>
+  </a>
+  <a class="nav-item" href="#" onclick="toggleSection('activity')">
+    <div class="nav-icon">📡</div>
+    <div class="nav-label">Activity</div>
+  </a>
+  <a class="nav-item" href="#" onclick="toggleSection('memory')">
+    <div class="nav-icon">🧠</div>
+    <div class="nav-label">Memory</div>
+  </a>
+  <a class="nav-item" href="#" onclick="toggleSection('team')">
+    <div class="nav-icon">👥</div>
+    <div class="nav-label">Team</div>
+  </a>
+</div>
+
+<script>
+  // Iteration bar visualization
+  function updateIterationBar(current, max) {
+    const bar = document.getElementById('iterationBar');
+    bar.innerHTML = '';
+    const segments = 25;
+    for (let i = 0; i < segments; i++) {
+      const pip = document.createElement('div');
+      pip.className = 'iteration-pip';
+      if (i < current) {
+        if (current <= 5) pip.classList.add('filled');
+        else if (current <= 10) pip.classList.add(i < 5 ? 'filled' : 'warning');
+        else pip.classList.add(i < 5 ? 'filled' : i < 10 ? 'warning' : 'danger');
+      }
+      bar.appendChild(pip);
+    }
+    document.getElementById('iterationCount').textContent = `${current} / ${max}`;
+  }
+
+  // Initialize
+  updateIterationBar(0, 25);
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function toggleSection(section) {
+    // Simple scroll-to for now
+    const map = {
+      'activity': 'activityFeed',
+      'memory': 'memoryFeed',
+      'team': 'teamFeed',
+      'logs': 'activityFeed'
+    };
+    const el = document.getElementById(map[section]);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Update nav active state
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+
+  function sendMission() {
+    // Open WhatsApp with pre-filled message
+    const msg = encodeURIComponent('🎯 New Mission: ');
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+
+  function generateWhatIf() {
+    const msg = encodeURIComponent('💡 Generate a new "What If" and explore it for 15 minutes. Report back what you find.');
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+
+  // Service Worker registration for PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+
+  // Auto-refresh status every 30 seconds
+  // In production, this would poll the OpenClaw Gateway API
+  setInterval(() => {
+    // Future: fetch('/api/status').then(...)
+  }, 30000);
+</script>
+
+</body>
+</html>
