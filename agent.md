@@ -41,10 +41,21 @@
 - Competing with existing AI products
 
 ## 3. Current State
-- **Build status**: Project initialized. Conceptual phase.
-- **Test status**: No experiments yet
-- **Deployment status**: N/A (experiment)
-- **Known blockers**: None — we're in ideation/architecture phase
+- **Build status**: DEPLOYED. Mega Claw is alive on Mac Mini.
+- **Test status**: First breath confirmed — clean response, no filler, no permission-seeking, immediate "what if" generated.
+- **Deployment status**: Running on Mac Mini (macOS), accessible from Android phone via LAN.
+- **Platform**: OpenClaw 2026.2.17 on Mac Mini (user: minimee)
+- **Gateway**: ws://0.0.0.0:18789, bind=lan, controlUi.allowInsecureAuth=true
+- **Mac Mini LAN IP**: 192.168.2.27
+- **Phone access**: http://192.168.2.27:18789 (OpenClaw Control UI)
+- **WhatsApp**: Connected (creator's personal number)
+- **Discord**: Connected (guild 1474354832184705056)
+- **Model**: openrouter/auto primary, with fallbacks to Claude Opus 4, Sonnet 4.5, Gemini, DeepSeek, Llama, Qwen
+- **Skills installed**: nano-banana-pro, openai-image-gen, openai-whisper-api, sag
+- **Known blockers**: 
+  - Remote access (outside home network) not yet configured — Tailscale planned for later
+  - Custom Mega Claw dashboard not yet deployed (using OpenClaw default Control UI)
+  - Agent name still shows "Mini Mee" in config — rename to "Mega Claw" pending
 
 ## 4. Architecture & Design Decisions
 
